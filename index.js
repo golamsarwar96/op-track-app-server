@@ -9,7 +9,7 @@ const { MongoClient, ServerApiVersion } = require("mongodb");
 app.use(cors());
 app.use(express.json());
 
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.PASS}@cluster0.i16dm.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.i16dm.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -22,10 +22,41 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
+    const usersCollection = client.db("optrackDB").collection("users");
+    const workSheetCollection = client.db("optrackDB").collection("worksheets");
+
+    //User Related Query
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      const query = { email: user?.email };
+
+      //1. Check if the use is already inside the database
+      const isExist = await usersCollection.findOne(query);
+
+      if (isExist) {
+        return res.send(isExist);
+      }
+
+      //2. New users input who are completely new in the server.
+      const result = await usersCollection.insertOne({
+        ...user,
+        timestamp: Date.now(),
+      });
+
+      res.send(result);
+    });
+
+    //Work Sheet related query
+    app.post("/work-sheet", async (req, res) => {
+      const workSheet = req.body;
+      const result = await workSheetCollection.insertOne(workSheet);
+      res.send(result);
+    });
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
+
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
