@@ -46,6 +46,18 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/users", async (req, res) => {
+      const result = await usersCollection.find().toArray();
+      res.send(result);
+    });
+
+    //get user role
+    app.get("/users/role/:email", async (req, res) => {
+      const email = req.params.email;
+      const result = await usersCollection.findOne({ email });
+      res.send({ role: result?.role });
+    });
+
     //Work Sheet related query
     app.post("/work-sheet", async (req, res) => {
       const workSheet = req.body;
@@ -53,6 +65,7 @@ async function run() {
       res.send(result);
     });
 
+    //Get worksheet for specific user
     app.get("/work-sheet/:email", async (req, res) => {
       const email = req.params.email;
       const query = { email };
@@ -84,13 +97,6 @@ async function run() {
       const query = { _id: new ObjectId(id) };
       const result = await workSheetCollection.deleteOne(query);
       res.send(result);
-    });
-
-    //get user role
-    app.get("/users/role/:email", async (req, res) => {
-      const email = req.params.email;
-      const result = await usersCollection.findOne({ email });
-      res.send({ role: result?.role });
     });
 
     // Connect the client to the server	(optional starting in v4.7)
