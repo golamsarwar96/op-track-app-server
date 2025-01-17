@@ -46,9 +46,47 @@ async function run() {
       res.send(result);
     });
 
+    //get all users
     app.get("/users", async (req, res) => {
       const result = await usersCollection.find().toArray();
       res.send(result);
+    });
+
+    // Update the status of the user
+    app.patch("/users/:id", async (req, res) => {
+      const id = req.params.id;
+      const { isVerified } = req.body;
+      console.log(isVerified);
+      const updated = {
+        $set: { isVerified: isVerified },
+      };
+
+      const query = { _id: new ObjectId(id) };
+      const result = await usersCollection.updateOne(query, updated);
+      res.send(result);
+    });
+
+    app.patch("/users/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const { isVerified } = req.body; // Extracting isVerified correctly from the request body
+
+        console.log("isVerified:", isVerified); // Proper logging for debugging
+
+        const updated = {
+          $set: { isVerified: isVerified },
+        };
+
+        const query = { _id: new ObjectId(id) };
+        const options = { upsert: true };
+
+        const result = await usersCollection.updateOne(query, updated, options);
+
+        res.send(result);
+      } catch (error) {
+        console.error("Error updating user:", error);
+        res.status(500).send({ message: "Internal server error" });
+      }
     });
 
     //get user role
