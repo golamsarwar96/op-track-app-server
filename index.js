@@ -114,6 +114,12 @@ async function run() {
       res.send(result);
     });
 
+    //Get  worksheet for all user
+    app.get("/work-sheet", async (req, res) => {
+      const result = await workSheetCollection.find().toArray();
+      res.send(result);
+    });
+
     //Worksheet update method
     app.put("/update-query/:id", async (req, res) => {
       const id = req.params.id;
