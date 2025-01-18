@@ -69,29 +69,6 @@ async function run() {
       res.send(result);
     });
 
-    app.patch("/users/:id", async (req, res) => {
-      try {
-        const id = req.params.id;
-        const { isVerified } = req.body; // Extracting isVerified correctly from the request body
-
-        console.log("isVerified:", isVerified); // Proper logging for debugging
-
-        const updated = {
-          $set: { isVerified: isVerified },
-        };
-
-        const query = { _id: new ObjectId(id) };
-        const options = { upsert: true };
-
-        const result = await usersCollection.updateOne(query, updated, options);
-
-        res.send(result);
-      } catch (error) {
-        console.error("Error updating user:", error);
-        res.status(500).send({ message: "Internal server error" });
-      }
-    });
-
     //get user role
     app.get("/users/role/:email", async (req, res) => {
       const email = req.params.email;
@@ -151,6 +128,28 @@ async function run() {
       const paymentReq = req.body;
       console.log(paymentReq);
       const result = await paymentReqCollection.insertOne(paymentReq);
+      res.send(result);
+    });
+
+    //Admin related API's
+    app.get("/users/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: { $ne: email } };
+      const result = await usersCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    app.put("/users/:id", async (req, res) => {
+      const id = req.params.id;
+      const { queryData } = req.body;
+      console.log(queryData);
+      const updated = {
+        $set: queryData,
+      };
+      const query = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const result = await usersCollection.updateOne(query, updated, options);
+      // console.log(result);
       res.send(result);
     });
 
