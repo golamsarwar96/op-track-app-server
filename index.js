@@ -24,6 +24,9 @@ async function run() {
   try {
     const usersCollection = client.db("optrackDB").collection("users");
     const workSheetCollection = client.db("optrackDB").collection("worksheets");
+    const paymentReqCollection = client
+      .db("optrackDB")
+      .collection("paymentReq");
 
     //User Related Query
     app.post("/users", async (req, res) => {
@@ -134,6 +137,14 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await workSheetCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    //Payment related APIs
+    app.post("/payment-req", async (req, res) => {
+      const paymentReq = req.body;
+      console.log(paymentReq);
+      const result = await paymentReqCollection.insertOne(paymentReq);
       res.send(result);
     });
 
