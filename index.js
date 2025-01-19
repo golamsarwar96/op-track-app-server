@@ -150,10 +150,10 @@ async function run() {
     //Employee fired API
     app.put("/users/:id", async (req, res) => {
       const id = req.params.id;
-      const { queryData } = req.body;
-      console.log(queryData);
+      const { isFired } = req.body;
+      console.log(isFired);
       const updated = {
-        $set: queryData,
+        $set: { isFired: isFired },
       };
       const query = { _id: new ObjectId(id) };
       const options = { upsert: true };
