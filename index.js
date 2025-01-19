@@ -142,13 +142,6 @@ async function run() {
       res.send(result);
     });
 
-    app.post("/payment", async (req, res) => {
-      const payment = req.body;
-      console.log(payment);
-      const result = await paymentCollection.insertOne(payment);
-      res.send(result);
-    });
-
     //Fetching all payment requests
     app.get("/payment-req", async (req, res) => {
       const result = await paymentReqCollection.find().toArray();
@@ -175,6 +168,18 @@ async function run() {
       });
       console.log(client_secret);
       res.send({ clientSecret: client_secret, salaryToCent });
+    });
+
+    app.post("/payment", async (req, res) => {
+      const payment = req.body;
+      console.log(payment);
+      const result = await paymentCollection.insertOne(payment);
+      res.send(result);
+    });
+
+    app.get("/payment", async (req, res) => {
+      const result = await paymentCollection.find().toArray();
+      res.send(result);
     });
 
     //Admin related API's
