@@ -139,6 +139,11 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/payment-req", async (req, res) => {
+      const result = await paymentReqCollection.find().toArray();
+      res.send(result);
+    });
+
     //Admin related API's
     app.get("/users/:email", async (req, res) => {
       const email = req.params.email;
