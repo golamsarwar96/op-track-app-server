@@ -26,6 +26,7 @@ async function run() {
   try {
     const usersCollection = client.db("optrackDB").collection("users");
     const workSheetCollection = client.db("optrackDB").collection("worksheets");
+    const paymentCollection = client.db("optrackDB").collection("payment");
     const paymentReqCollection = client
       .db("optrackDB")
       .collection("paymentReq");
@@ -138,6 +139,13 @@ async function run() {
       const paymentReq = req.body;
       console.log(paymentReq);
       const result = await paymentReqCollection.insertOne(paymentReq);
+      res.send(result);
+    });
+
+    app.post("/payment", async (req, res) => {
+      const payment = req.body;
+      console.log(payment);
+      const result = await paymentCollection.insertOne(payment);
       res.send(result);
     });
 
