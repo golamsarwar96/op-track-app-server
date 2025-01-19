@@ -55,6 +55,14 @@ async function run() {
       res.send(result);
     });
 
+    //get a specific user
+    app.get("/user/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const result = await usersCollection.findOne(query);
+      res.send(result);
+    });
+
     // Update the status of the user
     app.patch("/users/:id", async (req, res) => {
       const id = req.params.id;
@@ -139,6 +147,7 @@ async function run() {
       res.send(result);
     });
 
+    //Employee fired API
     app.put("/users/:id", async (req, res) => {
       const id = req.params.id;
       const { queryData } = req.body;
@@ -150,6 +159,35 @@ async function run() {
       const options = { upsert: true };
       const result = await usersCollection.updateOne(query, updated, options);
       // console.log(result);
+      res.send(result);
+    });
+
+    //Charge employee role
+    // Update the status of the user
+    app.patch("/users/role/:id", async (req, res) => {
+      const id = req.params.id;
+      const { role } = req.body;
+      console.log(role);
+      const updated = {
+        $set: { role: role },
+      };
+
+      const query = { _id: new ObjectId(id) };
+      const result = await usersCollection.updateOne(query, updated);
+      res.send(result);
+    });
+
+    //update salary of an employee
+    app.patch("/users/salary/:id", async (req, res) => {
+      const id = req.params.id;
+      const { updatedSalary } = req.body;
+      console.log(updatedSalary);
+      const updated = {
+        $set: { salary: Number(updatedSalary) },
+      };
+
+      const query = { _id: new ObjectId(id) };
+      const result = await usersCollection.updateOne(query, updated);
       res.send(result);
     });
 
