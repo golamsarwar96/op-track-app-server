@@ -1,7 +1,9 @@
 require("dotenv").config();
+
 const express = require("express");
 const app = express();
 const cors = require("cors");
+const stripe = require("stripe")(process.env.PAYMENT_SECRET_KEY);
 const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
@@ -139,9 +141,32 @@ async function run() {
       res.send(result);
     });
 
+    //Fetching all payment requests
     app.get("/payment-req", async (req, res) => {
       const result = await paymentReqCollection.find().toArray();
       res.send(result);
+    });
+
+    //Stripe Related API
+    //Create Payment Intent
+    app.post("/create-payment-intent", async (req, res) => {
+      const { employeeId } = req.body;
+      console.log(employeeId);
+      const employee = await usersCollection.findOne({
+        _id: new ObjectId(employeeId),
+      });
+      console.log(employee.salary);
+      const salaryToCent = employee.salary * 100; // total salary in cent
+
+      const { client_secret } = await stripe.paymentIntents.create({
+        amount: salaryToCent,
+        currency: "usd",
+        automatic_payment_methods: {
+          enabled: true,
+        },
+      });
+      console.log(client_secret);
+      res.send({ clientSecret: client_secret, salaryToCent });
     });
 
     //Admin related API's
