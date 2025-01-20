@@ -53,6 +53,17 @@ async function run() {
         .send({ success: true });
     });
 
+    //log out || clear cookie from browser
+    app.get("/logout", async (req, res) => {
+      res
+        .clearCookie("token", {
+          maxAge: 0,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+        })
+        .send({ success: true });
+    });
+
     //User Related Query
     app.post("/users", async (req, res) => {
       const user = req.body;
