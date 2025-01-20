@@ -4,6 +4,7 @@ const app = express();
 const cors = require("cors");
 const stripe = require("stripe")(process.env.PAYMENT_SECRET_KEY);
 const jwt = require("jsonwebtoken");
+const cookieParser = require("cookie-parser");
 const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
@@ -15,6 +16,7 @@ const corsOptions = {
 //Middleware
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use(cookieParser());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.i16dm.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -26,6 +28,22 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   },
 });
+
+//Verify Token Function
+const verifyToken = (req, res, next) => {
+  const token = req.cookies?.token;
+  if (!token) {
+    return res.status(401).send({ message: "Unauthorized Access" });
+  }
+  jwt.verify(token, process.env.SECRET_KEY, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ message: "Unauthorized Access" });
+    }
+    req.user = decoded;
+  });
+  console.log(token);
+  next();
+};
 
 async function run() {
   try {
@@ -43,7 +61,6 @@ async function run() {
       const token = jwt.sign(email, process.env.SECRET_KEY, {
         expiresIn: "20d",
       });
-      console.log(token);
       res
         .cookie("token", token, {
           httpOnly: true,
@@ -128,9 +145,14 @@ async function run() {
     });
 
     //Get worksheet for specific user
-    app.get("/work-sheet/:email", async (req, res) => {
+    app.get("/work-sheet/:email", verifyToken, async (req, res) => {
+      const decodedEmail = req.user?.email;
       const email = req.params.email;
       const query = { email };
+
+      if (decodedEmail !== email)
+        return res.status(401).send({ message: "Unauthorized Access" });
+
       const result = await workSheetCollection.find(query).toArray();
       res.send(result);
     });
