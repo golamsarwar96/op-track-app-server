@@ -1,14 +1,19 @@
 require("dotenv").config();
-
 const express = require("express");
 const app = express();
 const cors = require("cors");
 const stripe = require("stripe")(process.env.PAYMENT_SECRET_KEY);
+const jwt = require("jsonwebtoken");
 const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
+const corsOptions = {
+  origin: ["http://localhost:5173"],
+  credentials: true,
+  optionalSuccessStatus: 200,
+};
 //Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.i16dm.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
@@ -30,6 +35,23 @@ async function run() {
     const paymentReqCollection = client
       .db("optrackDB")
       .collection("paymentReq");
+
+    //Genarate JWT
+    app.post("/jwt", async (req, res) => {
+      const email = req.body;
+      //create token
+      const token = jwt.sign(email, process.env.SECRET_KEY, {
+        expiresIn: "20d",
+      });
+      console.log(token);
+      res
+        .cookie("token", token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+        })
+        .send({ success: true });
+    });
 
     //User Related Query
     app.post("/users", async (req, res) => {
@@ -170,17 +192,28 @@ async function run() {
       res.send({ clientSecret: client_secret, salaryToCent });
     });
 
+    //Payment history post API
     app.post("/payment", async (req, res) => {
       const payment = req.body;
-      console.log(payment);
       const result = await paymentCollection.insertOne(payment);
       res.send(result);
     });
 
-    app.get("/payment", async (req, res) => {
-      const result = await paymentCollection.find().toArray();
+    //All payment history API
+    app.get("/payment/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email };
+      const result = await paymentCollection.find(query).toArray();
       res.send(result);
     });
+
+    // app.get("/payment/:id", async (req, res) => {
+    //   const { id } = req.params;
+    //   console.log(id);
+    //   const query = { _id: new ObjectId(id) };
+    //   const result = await paymentCollection.find(query).toArray();
+    //   res.send(result);
+    // });
 
     //Admin related API's
     app.get("/users/:email", async (req, res) => {
