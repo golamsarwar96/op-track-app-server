@@ -55,6 +55,34 @@ async function run() {
       .db("optrackDB")
       .collection("paymentReq");
 
+    //verifyAdmin Token
+    const verifyAdmin = async (req, res, next) => {
+      console.log(req.user, "From verifyToken");
+      const email = req.user?.email;
+      const query = { email };
+      const result = await usersCollection.findOne(query);
+      console.log(result);
+      if (!result || result?.role !== "Admin")
+        return res
+          .status(403)
+          .send({ message: "Unauthorized Access! Admin Only Actions" });
+      next();
+    };
+
+    //verifyHR Token
+    const verifyHR = async (req, res, next) => {
+      console.log(req.user, "From verifyToken");
+      const email = req.user?.email;
+      const query = { email };
+      const result = await usersCollection.findOne(query);
+      console.log(result);
+      if (!result || result?.role !== "HR")
+        return res
+          .status(403)
+          .send({ message: "Unauthorized Access! Admin Only Actions" });
+      next();
+    };
+
     //Genarate JWT
     app.post("/jwt", async (req, res) => {
       const email = req.body;
@@ -83,7 +111,7 @@ async function run() {
     });
 
     //User Related Query
-    app.post("/users", async (req, res) => {
+    app.post("/users", verifyToken, async (req, res) => {
       const user = req.body;
       const query = { email: user?.email };
 
@@ -118,7 +146,7 @@ async function run() {
     });
 
     // Update the status of the user
-    app.patch("/users/:id", verifyToken, async (req, res) => {
+    app.patch("/users/:id", verifyToken, verifyHR, async (req, res) => {
       const id = req.params.id;
       const { isVerified } = req.body;
       console.log(isVerified);
@@ -134,16 +162,12 @@ async function run() {
     //get user role
     app.get("/users/role/:email", async (req, res) => {
       const email = req.params.email;
-      // const decodedEmail = req.user?.email;
-      // console.log(decodedEmail, email);
-      // if (decodedEmail !== email)
-      //   return res.status(401).send({ message: "Unauthorized Access" });
       const result = await usersCollection.findOne({ email });
       res.send({ role: result?.role });
     });
 
     //Work Sheet related query
-    app.post("/work-sheet", async (req, res) => {
+    app.post("/work-sheet", verifyToken, async (req, res) => {
       const workSheet = req.body;
       const result = await workSheetCollection.insertOne(workSheet);
       res.send(result);
@@ -162,7 +186,7 @@ async function run() {
     });
 
     //Get  worksheet for all user
-    app.get("/work-sheet", async (req, res) => {
+    app.get("/work-sheet", verifyToken, async (req, res) => {
       const result = await workSheetCollection.find().toArray();
       res.send(result);
     });
@@ -194,7 +218,7 @@ async function run() {
     });
 
     //Payment related APIs
-    app.post("/payment-req", async (req, res) => {
+    app.post("/payment-req", verifyToken, async (req, res) => {
       const paymentReq = req.body;
       console.log(paymentReq);
       const result = await paymentReqCollection.insertOne(paymentReq);
@@ -202,44 +226,53 @@ async function run() {
     });
 
     //Fetching all payment requests
-    app.get("/payment-req", async (req, res) => {
+    app.get("/payment-req", verifyToken, async (req, res) => {
       const result = await paymentReqCollection.find().toArray();
       res.send(result);
     });
 
     //Stripe Related API
     //Create Payment Intent
-    app.post("/create-payment-intent", async (req, res) => {
-      const { employeeId } = req.body;
-      console.log(employeeId);
-      const employee = await usersCollection.findOne({
-        _id: new ObjectId(employeeId),
-      });
-      console.log(employee.salary);
-      const salaryToCent = employee.salary * 100; // total salary in cent
+    app.post(
+      "/create-payment-intent",
+      verifyToken,
+      verifyAdmin,
+      async (req, res) => {
+        const { employeeId } = req.body;
+        console.log(employeeId);
+        const employee = await usersCollection.findOne({
+          _id: new ObjectId(employeeId),
+        });
+        console.log(employee.salary);
+        const salaryToCent = employee.salary * 100; // total salary in cent
 
-      const { client_secret } = await stripe.paymentIntents.create({
-        amount: salaryToCent,
-        currency: "usd",
-        automatic_payment_methods: {
-          enabled: true,
-        },
-      });
-      console.log(client_secret);
-      res.send({ clientSecret: client_secret, salaryToCent });
-    });
+        const { client_secret } = await stripe.paymentIntents.create({
+          amount: salaryToCent,
+          currency: "usd",
+          automatic_payment_methods: {
+            enabled: true,
+          },
+        });
+        console.log(client_secret);
+        res.send({ clientSecret: client_secret, salaryToCent });
+      }
+    );
 
     //Payment history post API
-    app.post("/payment", async (req, res) => {
+    app.post("/payment", verifyToken, verifyAdmin, async (req, res) => {
       const payment = req.body;
       const result = await paymentCollection.insertOne(payment);
       res.send(result);
     });
 
     //All payment history API
-    app.get("/payment/:email", async (req, res) => {
+    app.get("/payment/:email", verifyToken, async (req, res) => {
       const email = req.params.email;
       const query = { email };
+      const decodedEmail = req.user?.email;
+      if (decodedEmail !== email)
+        return res.status(401).send({ message: "Unauthorized Access" });
+
       const result = await paymentCollection.find(query).toArray();
       res.send(result);
     });
@@ -264,7 +297,7 @@ async function run() {
     });
 
     //Employee fired API
-    app.put("/users/:id", verifyToken, async (req, res) => {
+    app.put("/users/:id", verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const { isFired } = req.body;
       console.log(isFired);
@@ -280,7 +313,7 @@ async function run() {
 
     //Charge employee role
     // Update the status of the user
-    app.patch("/users/role/:id", verifyToken, async (req, res) => {
+    app.patch("/users/role/:id", verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const { role } = req.body;
       console.log(role);
@@ -294,18 +327,23 @@ async function run() {
     });
 
     //update salary of an employee
-    app.patch("/users/salary/:id", verifyToken, async (req, res) => {
-      const id = req.params.id;
-      const { updatedSalary } = req.body;
-      console.log(updatedSalary);
-      const updated = {
-        $set: { salary: Number(updatedSalary) },
-      };
+    app.patch(
+      "/users/salary/:id",
+      verifyToken,
+      verifyAdmin,
+      async (req, res) => {
+        const id = req.params.id;
+        const { updatedSalary } = req.body;
+        console.log(updatedSalary);
+        const updated = {
+          $set: { salary: Number(updatedSalary) },
+        };
 
-      const query = { _id: new ObjectId(id) };
-      const result = await usersCollection.updateOne(query, updated);
-      res.send(result);
-    });
+        const query = { _id: new ObjectId(id) };
+        const result = await usersCollection.updateOne(query, updated);
+        res.send(result);
+      }
+    );
 
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
