@@ -32,6 +32,7 @@ const client = new MongoClient(uri, {
 //Verify Token Function
 const verifyToken = (req, res, next) => {
   const token = req.cookies?.token;
+  console.log(token);
   if (!token) {
     return res.status(401).send({ message: "Unauthorized Access" });
   }
@@ -103,12 +104,12 @@ async function run() {
     });
 
     //get all users
-    app.get("/users", async (req, res) => {
+    app.get("/users", verifyToken, async (req, res) => {
       const result = await usersCollection.find().toArray();
       res.send(result);
     });
 
-    //get a specific user // not this
+    //get a specific user // not this doesn't let me login
     app.get("/user/:email", async (req, res) => {
       const email = req.params.email;
       const query = { email: email };
@@ -117,7 +118,7 @@ async function run() {
     });
 
     // Update the status of the user
-    app.patch("/users/:id", async (req, res) => {
+    app.patch("/users/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const { isVerified } = req.body;
       console.log(isVerified);
@@ -133,6 +134,10 @@ async function run() {
     //get user role
     app.get("/users/role/:email", async (req, res) => {
       const email = req.params.email;
+      // const decodedEmail = req.user?.email;
+      // console.log(decodedEmail, email);
+      // if (decodedEmail !== email)
+      //   return res.status(401).send({ message: "Unauthorized Access" });
       const result = await usersCollection.findOne({ email });
       res.send({ role: result?.role });
     });
@@ -163,7 +168,7 @@ async function run() {
     });
 
     //Worksheet update method
-    app.put("/update-query/:id", async (req, res) => {
+    app.put("/update-query/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const queryData = req.body;
       const updated = {
@@ -181,7 +186,7 @@ async function run() {
     });
 
     //wordSheet Delete
-    app.delete("/work-sheet/:id", async (req, res) => {
+    app.delete("/work-sheet/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await workSheetCollection.deleteOne(query);
@@ -259,7 +264,7 @@ async function run() {
     });
 
     //Employee fired API
-    app.put("/users/:id", async (req, res) => {
+    app.put("/users/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const { isFired } = req.body;
       console.log(isFired);
@@ -275,7 +280,7 @@ async function run() {
 
     //Charge employee role
     // Update the status of the user
-    app.patch("/users/role/:id", async (req, res) => {
+    app.patch("/users/role/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const { role } = req.body;
       console.log(role);
@@ -289,7 +294,7 @@ async function run() {
     });
 
     //update salary of an employee
-    app.patch("/users/salary/:id", async (req, res) => {
+    app.patch("/users/salary/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const { updatedSalary } = req.body;
       console.log(updatedSalary);
