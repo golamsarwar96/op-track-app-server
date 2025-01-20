@@ -108,7 +108,7 @@ async function run() {
       res.send(result);
     });
 
-    //get a specific user
+    //get a specific user // not this
     app.get("/user/:email", async (req, res) => {
       const email = req.params.email;
       const query = { email: email };
@@ -146,10 +146,9 @@ async function run() {
 
     //Get worksheet for specific user
     app.get("/work-sheet/:email", verifyToken, async (req, res) => {
-      const decodedEmail = req.user?.email;
       const email = req.params.email;
       const query = { email };
-
+      const decodedEmail = req.user?.email;
       if (decodedEmail !== email)
         return res.status(401).send({ message: "Unauthorized Access" });
 
@@ -249,9 +248,12 @@ async function run() {
     // });
 
     //Admin related API's
-    app.get("/users/:email", async (req, res) => {
+    app.get("/users/:email", verifyToken, async (req, res) => {
       const email = req.params.email;
       const query = { email: { $ne: email } };
+      const decodedEmail = req.user?.email;
+      if (decodedEmail !== email)
+        return res.status(401).send({ message: "Unauthorized Access" });
       const result = await usersCollection.find(query).toArray();
       res.send(result);
     });
