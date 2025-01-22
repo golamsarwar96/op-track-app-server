@@ -67,3 +67,8 @@
 ## LIVE LINK: 🌐
 
 https://op-track-server.vercel.app/
+
+## Credentials :
+
+- Email: admin@optrack.com
+- Password: Asdf123
