@@ -111,7 +111,7 @@ async function run() {
     });
 
     //User Related Query
-    app.post("/users", verifyToken, async (req, res) => {
+    app.post("/users", async (req, res) => {
       const user = req.body;
       const query = { email: user?.email };
 
@@ -142,6 +142,23 @@ async function run() {
       const email = req.params.email;
       const query = { email: email };
       const result = await usersCollection.findOne(query);
+      res.send(result);
+    });
+
+    //Employee Details
+    app.get("/users/detail/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const query = { _id: new ObjectId(id) };
+      const result = await usersCollection.findOne(query);
+      res.send(result);
+    });
+
+    //Chart api
+    app.get("/chart/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email };
+      const result = await paymentCollection.find(query).toArray();
       res.send(result);
     });
 
@@ -297,8 +314,9 @@ async function run() {
     });
 
     //Employee fired API
-    app.put("/users/:id", verifyToken, verifyAdmin, async (req, res) => {
+    app.put("/users/fire/:id", verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
+      console.log(id);
       const { isFired } = req.body;
       console.log(isFired);
       const updated = {
