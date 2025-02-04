@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://i.ibb.co.com/HhnbJL0/Screenshot-2025-01-22-180945.png"  />
+  <img src="https://i.ibb.co.com/93GyKRPF/optrackss.png"  />
 </div>
 
 # Project Name : OpTrack 🧑‍🚀
@@ -37,36 +37,39 @@
 • mongodb: "^6.12.0", <br/>
 • stripe: "^17.5.0" <br/>
 
-<!-- ## Run On Your Machine -->
+## Installation
 
-<!-- 1. Clone Repository
-   • Click on the green "Code" button. <br/>
-   • Copy the HTTPS URL. <br/>
-   • Open your terminal or command prompt and navigate to the directory where you want to clone the project. <br/>
+### **1. Clone the Repository**  
+```sh
+git clone https://github.com/golamsarwar96/op-track-app-server.git
+```
+### **2. Install Dependencies**
 
-   git clone https://github.com/golamsarwar96/sport-flex-app-client.git <br/>
+```sh
+npm install
+```
+### **3. Environment Configuration**
+Create a .env file in the project root and add the following environment variables <br/>
 
-   • Navigate into the project folder: <br/>
+```sh
+# Database Configuration
+MONGO_URI=mongodb://localhost:27017/optrack_db
 
-   cd project-name <br/>
+# JWT Secret for Authentication
+JWT_SECRET=your_jwt_secret_key
 
-2. Install Dependencies <br/>
-   • Check package.json <br/>
-   • Run the command <br/>
+# Stripe API Keys
+STRIPE_SECRET_KEY=your_stripe_secret_key
+STRIPE_PUBLIC_KEY=your_stripe_public_key
+```
 
-   npm install <br/>
+### **4. Run the Project**
+```sh
+npm run dev
+```
 
-   • Check Configuration Files: <br/>
-   Review environment files like .env for any necessary API keys or database credentials. <br/>
-
-3. Run The Project <br/>
-   • Run the command <br/>
-
-   npm run dev <br/> -->
-
-## LIVE LINK: 🌐
-
-https://op-track-server.vercel.app/
+## Server Link 🌐
+https://op-track-server.vercel.app/ <br/>
 
 ## Credentials :
 
